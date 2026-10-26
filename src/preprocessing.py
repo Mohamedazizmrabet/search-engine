@@ -10,48 +10,66 @@ LANG_NAMES = {"fr": "french", "en": "english"}
 
 
 def lowercase(text: str) -> str:
-    # TODO (B)
-    raise NotImplementedError
+    """"Base Militaire" → "base militaire"  (slide 20)."""
+    return text.lower()
 
 
 def remove_accents(text: str) -> str:
-    """"école" → "ecole".
-    Hint: unicodedata.normalize("NFD", text), then drop characters whose
-    unicodedata.category(c) == "Mn" (the accent marks).
-    """
-    # TODO (B)
-    raise NotImplementedError
+    """"école" → "ecole"  (slide 20)."""
+    decomposed = unicodedata.normalize("NFD", text)
+    result = ""
+    for c in decomposed:
+        if unicodedata.category(c) != "Mn":
+            result = result + c
+    return result
 
 
 def tokenize(text: str) -> list[str]:
     """Split on anything that is not a letter.
     "l'e-mail de m. dupont" → ["l", "e", "mail", "de", "m", "dupont"]
-    Hint: re.findall(r"[a-z]+", text) works once accents are removed.
-    Decide as a team whether to keep numbers.
     """
-    # TODO (B)
-    raise NotImplementedError
+    tokens = re.findall(r"[a-z]+", text)
+    return tokens
+
+
+def get_stopwords(lang: str) -> list[str]:
+    """NLTK's stopword list for `lang`, with accents removed."""
+    words = stopwords.words(LANG_NAMES[lang])
+    clean_words = []
+    for w in words:
+        clean_words.append(remove_accents(w))
+    return clean_words
 
 
 def remove_stopwords(tokens: list[str], lang: str) -> list[str]:
-    """Remove stopwords using NLTK's list for `lang`.
-    Careful: NLTK's French list has accents ("été", "à") — run
-    remove_accents() on the list too, or "ete" won't be removed.
-    Also drop 1-letter tokens ("l", "d", "m").
-    """
-    # TODO (B)
-    raise NotImplementedError
+    """Drop stopwords and 1-letter tokens ("l", "d", "m")."""
+    stop = get_stopwords(lang)
+    kept = []
+    for t in tokens:
+        if len(t) > 1 and t not in stop:
+            kept.append(t)
+    return kept
 
 
 def stem(tokens: list[str], lang: str) -> list[str]:
     """Snowball stemming: "economistes" → "econom" (French)."""
-    # TODO (B): SnowballStemmer(LANG_NAMES[lang])
-    raise NotImplementedError
+    stemmer = SnowballStemmer(LANG_NAMES[lang])
+    stems = []
+    for t in tokens:
+        stems.append(stemmer.stem(t))
+    return stems
 
 
 def process(text: str, lang: str) -> list[str]:
     """Full pipeline for one document (or a query)."""
-    text = remove_accents(lowercase(text))
+    text = lowercase(text)
+    text = remove_accents(text)
     tokens = tokenize(text)
     tokens = remove_stopwords(tokens, lang)
-    return stem(tokens, lang)
+    tokens = stem(tokens, lang)
+    return tokens
+
+
+if __name__ == "__main__":
+    sample = "L'économie mondiale dépend des économistes."
+    print(process(sample, "fr"))
