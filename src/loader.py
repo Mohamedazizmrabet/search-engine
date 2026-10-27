@@ -15,14 +15,21 @@ def detect_language(text: str) -> str:
         return "en"
     return lang if lang in ("fr", "en") else "en"
 
-
 def load_collection(folder: str = "data") -> dict:
-    """Read every .txt file in `folder`.
+    collection = {}
+    files = sorted(Path(folder).glob("*.txt"))
 
-    Returns:
-        {"D1": {"path": "data/a.txt", "lang": "fr", "text": "..."}, ...}
-    Files are sorted by name so IDs stay stable between runs.
-    """
-    # TODO (A): loop over sorted(Path(folder).glob("*.txt")),
-    #           read with encoding="utf-8", detect language, build the dict
-    raise NotImplementedError
+    for i, path in enumerate(files, start=1):
+        print(f"{i} {path.as_posix()}")
+        text = path.read_text(encoding="utf-8")
+        doc_id = f"D{i}"
+        collection[doc_id] = {
+            "path": path.as_posix(),
+            "lang": detect_language(text),
+            "text": text,
+        }
+
+    return collection
+"""Read every .txt file in `folder`.
+   Returns {"D1": {"path": ..., "lang": ..., "text": ...}, ...}
+"""
