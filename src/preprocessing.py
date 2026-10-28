@@ -1,12 +1,10 @@
-"""Steps 2–4 — Lexical analysis, stopword removal, normalization.
+"""Steps 2–4 — Lexical analysis, stopword removal, normalization (English).
 Owner: Member B
 """
 import re
 import unicodedata
 from nltk.corpus import stopwords
-from nltk.stem.snowball import SnowballStemmer
-
-LANG_NAMES = {"fr": "french", "en": "english"}
+from nltk.stem import PorterStemmer
 
 
 def lowercase(text: str) -> str:
@@ -15,8 +13,8 @@ def lowercase(text: str) -> str:
 
 
 def remove_accents(text: str) -> str:
-    """"école" → "ecole"  (slide 20)."""
-    decomposed = unicodedata.normalize("NFD", text)
+    """"café" → "cafe", and PDF ligatures "ﬁ" → "fi"  (slide 20)."""
+    decomposed = unicodedata.normalize("NFKD", text)
     result = ""
     for c in decomposed:
         if unicodedata.category(c) != "Mn":
@@ -26,24 +24,15 @@ def remove_accents(text: str) -> str:
 
 def tokenize(text: str) -> list[str]:
     """Split on anything that is not a letter.
-    "l'e-mail de m. dupont" → ["l", "e", "mail", "de", "m", "dupont"]
+    "it's an e-mail." → ["it", "s", "an", "e", "mail"]
     """
     tokens = re.findall(r"[a-z]+", text)
     return tokens
 
 
-def get_stopwords(lang: str) -> list[str]:
-    """NLTK's stopword list for `lang`, with accents removed."""
-    words = stopwords.words(LANG_NAMES[lang])
-    clean_words = []
-    for w in words:
-        clean_words.append(remove_accents(w))
-    return clean_words
-
-
-def remove_stopwords(tokens: list[str], lang: str) -> list[str]:
-    """Drop stopwords and 1-letter tokens ("l", "d", "m")."""
-    stop = get_stopwords(lang)
+def remove_stopwords(tokens: list[str]) -> list[str]:
+    """Drop English stopwords and 1-letter tokens ("s", "t")."""
+    stop = stopwords.words("english")
     kept = []
     for t in tokens:
         if len(t) > 1 and t not in stop:
@@ -51,25 +40,25 @@ def remove_stopwords(tokens: list[str], lang: str) -> list[str]:
     return kept
 
 
-def stem(tokens: list[str], lang: str) -> list[str]:
-    """Snowball stemming: "economistes" → "econom" (French)."""
-    stemmer = SnowballStemmer(LANG_NAMES[lang])
+def stem(tokens: list[str]) -> list[str]:
+    """Porter stemming (slide 31): "retrieving" → "retriev"."""
+    stemmer = PorterStemmer()
     stems = []
     for t in tokens:
         stems.append(stemmer.stem(t))
     return stems
 
 
-def process(text: str, lang: str) -> list[str]:
+def process(text: str) -> list[str]:
     """Full pipeline for one document (or a query)."""
     text = lowercase(text)
     text = remove_accents(text)
     tokens = tokenize(text)
-    tokens = remove_stopwords(tokens, lang)
-    tokens = stem(tokens, lang)
+    tokens = remove_stopwords(tokens)
+    tokens = stem(tokens)
     return tokens
 
 
 if __name__ == "__main__":
-    sample = "L'économie mondiale dépend des économistes."
-    print(process(sample, "fr"))
+    sample = "The retrieval system is retrieving the ﬁles it retrieved."
+    print(process(sample))

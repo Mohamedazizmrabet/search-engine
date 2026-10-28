@@ -10,8 +10,8 @@ def main():
 
     docs = {}
     for doc_id, info in collection.items():
-        docs[doc_id] = process(info["text"], info["lang"])
-        print(f"  {doc_id} [{info['lang']}] {info['path']}: {len(docs[doc_id])} terms")
+        docs[doc_id] = process(info["text"])
+        print(f"  {doc_id} {info['path']}: {len(docs[doc_id])} terms")
 
     index = build_inverted_file(docs)
     save_index(index, "index.json")
