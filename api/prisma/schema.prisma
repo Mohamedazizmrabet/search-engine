@@ -1,0 +1,83 @@
+// Database schema. Prisma is the ONLY owner of the schema and migrations.
+// The Python search service reads/writes these tables but never changes them.
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  moduleFormat    = "cjs"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model Subject {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  courses Course[]
+
+  @@map("subjects")
+}
+
+model Course {
+  id        Int       @id @default(autoincrement())
+  title     String
+  subjectId Int       @map("subject_id")
+  pdfPath   String    @map("pdf_path")
+  pageCount Int       @default(0) @map("page_count")
+  termCount Int       @default(0) @map("term_count")
+  createdAt DateTime  @default(now()) @map("created_at")
+  // A subject that still has courses cannot be deleted.
+  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  postings  Posting[]
+  chunks    Chunk[]
+
+  @@map("courses")
+}
+
+// Inverted file: dictionary. idf is NOT stored, it is computed at search time.
+model Term {
+  term           String    @id
+  df             Int       @default(0)
+  totalFrequency Int       @default(0) @map("total_frequency")
+  postings       Posting[]
+
+  @@map("terms")
+}
+
+// Inverted file: postings (one row per term per course).
+model Posting {
+  term      String
+  courseId  Int    @map("course_id")
+  tf        Int
+  termEntry Term   @relation(fields: [term], references: [term], onDelete: Cascade)
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([term, courseId])
+  @@index([courseId])
+  @@map("postings")
+}
+
+// One chunk per PDF page, with its sentence-transformers embedding (384 dimensions).
+// Prisma has no vector type: use raw SQL to read/write the embedding column.
+model Chunk {
+  id        Int                         @id @default(autoincrement())
+  courseId  Int                         @map("course_id")
+  page      Int
+  text      String
+  embedding Unsupported("vector(384)")?
+  course    Course                      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@map("chunks")
+}
+
+model Admin {
+  id           Int    @id @default(autoincrement())
+  email        String @unique
+  passwordHash String @map("password_hash")
+
+  @@map("admins")
+}
