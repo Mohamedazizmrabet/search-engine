@@ -1,0 +1,9 @@
+descit du context 
+problematique 
+objectives 
+identification des acteurs
+besoin fonctioneles
+besoin non fonctioneles --> application doit repondres aux les cas comment up time ect ect 
+technologie a utilise 
+architecture logique et physique 
+conception ( les diagrammes)
