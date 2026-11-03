@@ -1,0 +1,57 @@
+# Starts the whole project: docker compose up --build
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      # Local development only. Same values as DATABASE_URL in api/.env and search/.env.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: search_engine
+    ports:
+      - "5432:5432" # so you can open the database with Prisma Studio or pgAdmin
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d search_engine"]
+      interval: 5s
+      retries: 10
+
+  search:
+    build: ./search
+    env_file: ./search/.env
+    volumes:
+      - ./search:/app # live reload when you edit Python files
+      - ./pdfs:/pdfs
+    # No "ports": only the API can reach this service (spec: internal network only).
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ./api
+    env_file: ./api/.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api:/app # live reload when you edit TypeScript files
+      - /app/node_modules # keep the container's own node_modules
+      - ./pdfs:/pdfs
+    depends_on:
+      db:
+        condition: service_healthy
+      search:
+        condition: service_started
+
+  web:
+    build: ./web
+    env_file: ./web/.env
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  db-data:

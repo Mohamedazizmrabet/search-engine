@@ -1,11 +1,13 @@
-"""Build the index: python main.py"""
-from src.loader import load_collection
-from src.preprocessing import process
-from src.indexer import build_inverted_file, save_index
+"""Old phase-1 script: build index.json from the PDFs in ../pdfs
+Run from the search/ folder:  python build_index.py
+"""
+from indexing.loader import load_collection
+from indexing.preprocessing import process
+from indexing.indexer import build_inverted_file, save_index
 
 
 def main():
-    collection = load_collection("data")
+    collection = load_collection("../pdfs")
     print(f"Loaded {len(collection)} documents")
 
     docs = {}

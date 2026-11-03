@@ -1,5 +1,5 @@
 import math
-from src.indexer import compute_tf, compute_df, compute_idf, compute_tfidf, build_inverted_file
+from indexing.indexer import compute_tf, compute_df, compute_idf, compute_tfidf, build_inverted_file
 
 
 def test_idf_slide_47():
