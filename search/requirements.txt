@@ -1,3 +1,7 @@
 pypdf
 nltk
 pytest
+fastapi
+uvicorn[standard]
+psycopg[binary]
+httpx

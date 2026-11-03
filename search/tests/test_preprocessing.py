@@ -1,4 +1,4 @@
-from src.preprocessing import lowercase, remove_accents, tokenize, process
+from indexing.preprocessing import lowercase, remove_accents, tokenize, process
 
 
 def test_lowercase():

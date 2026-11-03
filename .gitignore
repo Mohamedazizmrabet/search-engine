@@ -1,7 +1,22 @@
+# Secrets: only the .env.example files are committed
+.env
+
+# Python
 venv/
 __pycache__/
 *.pyc
 .pytest_cache/
 index.json
+
+# Node
+node_modules/
+dist/
+api/src/generated/
+
+# Uploaded PDFs (the folder itself is kept with .gitkeep)
+pdfs/*
+!pdfs/.gitkeep
+
+# Editors
 .vscode/
 .idea/
